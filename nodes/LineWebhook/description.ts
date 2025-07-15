@@ -4,7 +4,6 @@ export const defaultWebhookDescription: IWebhookDescription = {
 	name: 'default',
 	httpMethod: 'POST',
 	isFullPath: true,
-	responseCode: '200',
 	responseMode: 'onReceived',
 	responseData: 'allEntries',
 	responseBinaryPropertyName: '={{$parameter["responseBinaryPropertyName"]}}',
@@ -14,6 +13,4 @@ export const defaultWebhookDescription: IWebhookDescription = {
 	path: '={{$parameter["path"]}}',
 	ndvHideUrl: false,
     ndvHideMethod: false,
-	icon: 'file:msg.svg',
-    iconColor: 'green',
 };

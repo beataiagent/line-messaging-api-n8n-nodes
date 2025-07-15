@@ -1,5 +1,5 @@
 {
-  "name": "line-messaging-api-n8n-nodes",
+  "name": "n8n-nodes-line-messaging-api",
   "version": "1.0.0",
   "description": "Custom n8n node for LINE Messaging API Webhook",
   "main": "index.js",
@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/beataiagent/line-messaging-api-n8n-nodes.git"
   },
-  "author": "บีท",
+  "author": "Punsiri Boonyakiat",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/beataiagent/line-messaging-api-n8n-nodes/issues"
