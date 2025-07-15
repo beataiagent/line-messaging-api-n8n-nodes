@@ -1,0 +1,34 @@
+{
+  "name": "line-messaging-api-n8n-nodes",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beataiagent/line-messaging-api-n8n-nodes.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/beataiagent/line-messaging-api-n8n-nodes/issues"
+  },
+  "homepage": "https://github.com/beataiagent/line-messaging-api-n8n-nodes#readme",
+  "description": "",
+  "n8n": {
+    "credentials": [
+      "./credentials/LineApi.credentials.ts"
+    ],
+    "nodes": [
+      "./nodes/LineWebhook.node.ts"
+    ]
+  },
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "n8n-workflow": "^1.82.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.14"
+  }
+}

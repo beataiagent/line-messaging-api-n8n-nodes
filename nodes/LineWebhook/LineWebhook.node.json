@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-base.LineWebhook",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Communitcation"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://developers.line.biz/en/docs/messaging-api/receiving-messages/#verify-signature"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://developers.line.biz/en/docs/messaging-api/receiving-messages/"
+			}
+		]
+	}
+}
