@@ -93,8 +93,14 @@ export const messagingAPIOperations: INodeProperties[] = [
 		displayName: 'Message',
 		name: 'message',
 		type: 'json',
-		default: '',
+		default: {
+			type: 'text',
+			text: 'Hello, world',
+		},
 		required: true,
+		typeOptions: {
+			alwaysOpenEditWindow: true,
+		},
 		displayOptions: {
 			show: {
 				operation: ['replyMessage', 'pushMessage', 'multicast'],
