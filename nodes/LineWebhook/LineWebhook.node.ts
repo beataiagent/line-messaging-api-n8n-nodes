@@ -166,15 +166,47 @@ export class LineWebhook implements INodeType {
         }
 
         if (selectedEvents.includes('*') || selectedEvents.includes(actualType)) {
-          outputData[outputIndex].push({
+          const basePayload: any = {
             eventType: actualType,
-            replyToken: event.replyToken,
             timestamp: event.timestamp,
             source: event.source,
-            message: event.message ?? undefined,
-            postback: event.postback ?? undefined,
             rawEvent: event,
-          });
+          };
+
+          switch (actualType) {
+            case 'message':
+              basePayload.replyToken = event.replyToken;
+              basePayload.message = event.message;
+              break;
+
+            case 'postback':
+              basePayload.replyToken = event.replyToken;
+              basePayload.postback = event.postback;
+              break;
+
+            case 'follow':
+            case 'join':
+              basePayload.replyToken = event.replyToken;
+              break;
+
+            case 'unfollow':
+            case 'leave':
+              break;
+
+            case 'beacon':
+              basePayload.replyToken = event.replyToken;
+              basePayload.beacon = event.beacon;
+              break;
+
+            case 'accountLink':
+              basePayload.link = event.link;
+              break;
+
+            default:
+              break;
+          }
+
+          outputData[outputIndex].push(basePayload);
         }
       }
       console.log('outputData:', outputData);

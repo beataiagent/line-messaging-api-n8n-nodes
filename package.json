@@ -1,9 +1,13 @@
 {
   "name": "n8n-nodes-line-messaging-api-kit",
-  "version": "1.0.22",
+  "version": "1.0.27",
   "description": "Custom n8n node for LINE Messaging API Webhook",
   "main": "index.js",
-  "keywords": ["n8n", "line", "webhook"],
+  "keywords": [
+    "n8n",
+    "line",
+    "webhook"
+  ],
   "scripts": {
     "build": "tsc"
   },
@@ -18,27 +22,29 @@
   },
   "homepage": "https://github.com/beataiagent/line-messaging-api-n8n-nodes#readme",
   "files": [
-		"dist"
-	],
-	"n8n": {
-		"n8nNodesApiVersion": 1,
-		"credentials": [
-			"dist/credentials/LineWebhookAuthApi.credentials.js"
-		],
-		"nodes": [
-			"dist/nodes/LineWebhook/LineWebhook.node.js",
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/LineWebhookAuthApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/LineWebhook/LineWebhook.node.js",
       "dist/nodes/LineMessageBuilder/LineMessageBuilder.node.js",
       "dist/nodes/LineMessaging/LineMessaging.node.js"
-		]
-	},
+    ]
+  },
   "dependencies": {
     "@line/bot-sdk": "^10.0.0",
+    "@modelcontextprotocol/sdk": "^1.15.1",
     "@n8n/config": "^1.1.0",
     "express": "^5.1.0",
     "luxon": "^3.7.1",
     "n8n-workflow": "^1.82.0",
     "nock": "^14.0.5",
-    "ssh2": "^1.16.0"
+    "ssh2": "^1.16.0",
+    "zod": "^4.0.5"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",

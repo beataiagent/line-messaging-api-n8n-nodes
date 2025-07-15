@@ -190,7 +190,7 @@ export const messagingAPIOperations: INodeProperties[] = [
 export class LineMessaging implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'LINE Messaging API',
-		name: 'lineMessaging',
+		name: 'LineMessagingAPI',
 		icon: 'file:msg.svg',
 		group: ['transform'],
 		version: 1,
@@ -235,27 +235,44 @@ export class LineMessaging implements INodeType {
 			if (operation === 'replyMessage') {
 				const replyToken = this.getNodeParameter('replyToken', i) as string;
 				const message = this.getNodeParameter('message', i);
-				const messages = Array.isArray(message) ? message : [message] as any;
-				await client.validateReply(messages);
-				await client.replyMessage({
-						replyToken,
-						messages: messages,
-				});
+				const messages = Array.isArray(message) ? message : [message];
+
+				for (const [index, m] of messages.entries()) {
+					if (!m.type) {
+						throw new NodeApiError(this.getNode(), {}, {
+							message: `Message at index ${index} missing "type"`
+						});
+					}
+				}
+				console.log('Replying with:', JSON.stringify({ replyToken, messages }, null, 2));
+				await client.replyMessage({ replyToken, messages });
+
 				returnData.push({
 					json: {
 						success: true,
 						message: 'Message replied successfully',
 					},
 				});
-
 			} else if (operation === 'pushMessage') {
 				const message = this.getNodeParameter('message', i);
 				const messages = Array.isArray(message) ? message : [message];
-				const to = this.getNodeParameter('targetRecipient', i) as string | undefined; // Allow undefined
+				const to = this.getNodeParameter('targetRecipient', i) as string;
+
 				if (!to) {
 					throw new NodeApiError(this.getNode(), {}, { message: 'Missing target recipient for push message' });
 				}
-				await client.pushMessage({ to: to, messages });
+
+				messages.forEach((m, index) => {
+					if (!m.type) {
+						throw new NodeApiError(this.getNode(), {}, { message: `Message at index ${index} is missing "type"` });
+					}
+				});
+
+				console.log('Pushing message to:', to);
+				console.log('Payload:', JSON.stringify({ to, messages }, null, 2));
+
+				await client.pushMessage({ to, messages });
+
 				returnData.push({
 					json: {
 						success: true,

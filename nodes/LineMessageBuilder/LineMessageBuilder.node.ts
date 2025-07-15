@@ -110,6 +110,167 @@ export const messageTypes: INodeProperties[] = [
       },
     ],
   },
+	{
+		displayName: 'Original Content URL',
+		name: 'originalContentUrl',
+		type: 'string',
+		default: '',
+		description: 'URL of the content (Max: 1000 characters, HTTPS). For audio, only M4A is supported.',
+		displayOptions: {
+			show: {
+				operation: ['image', 'video', 'audio'],
+			},
+		},
+	},
+	{
+		displayName: 'Preview Image URL',
+		name: 'previewImageUrl',
+		type: 'string',
+		default: '',
+		description: 'URL of the preview image (Max: 1000 characters, HTTPS)',
+		displayOptions: {
+			show: {
+				operation: ['image', 'video'],
+			},
+		},
+	},
+	{
+		displayName: 'Duration',
+		name: 'duration',
+		type: 'number',
+		default: 60000,
+		description: 'Length of audio file in milliseconds.',
+		displayOptions: {
+			show: {
+				operation: ['audio'],
+			},
+		},
+	},
+	{
+		displayName: 'Tracking ID',
+		name: 'trackingId',
+		type: 'string',
+		default: '',
+		description: 'ID for video play completion statistics. Can be specified when video viewing is complete.',
+		displayOptions: {
+			show: {
+				operation: ['video'],
+			},
+		},
+	},
+	{
+		displayName: 'Title',
+		name: 'title',
+		type: 'string',
+		default: '',
+		description: 'The title for the location message (Max: 100 characters)',
+		displayOptions: {
+			show: {
+				operation: ['location'],
+			},
+		},
+	},
+	{
+		displayName: 'Address',
+		name: 'address',
+		type: 'string',
+		default: '',
+		description: 'The address for the location message (Max: 100 characters)',
+		displayOptions: {
+			show: {
+				operation: ['location'],
+			},
+		},
+	},
+	{
+		displayName: 'Latitude',
+		name: 'latitude',
+		type: 'number',
+		default: 0,
+		typeOptions: {
+			numberPrecision: 8,
+		},
+		description: 'The latitude of the location',
+		displayOptions: {
+			show: {
+				operation: ['location'],
+			},
+		},
+	},
+	{
+		displayName: 'Longitude',
+		name: 'longitude',
+		type: 'number',
+		default: 0,
+		typeOptions: {
+			numberPrecision: 8,
+		},
+		description: 'The longitude of the location',
+		displayOptions: {
+			show: {
+				operation: ['location'],
+			},
+		},
+	},
+	{
+		displayName: 'Sticker Info',
+		name: 'stickerNotice',
+		type: 'notice',
+		default: '',
+		displayOptions: {
+			show: {
+				operation: ['sticker'],
+			},
+		},
+		description:
+			'For a list of available stickers, see the <a href="https://developers.line.biz/en/docs/messaging-api/sticker-list/#sticker-definitions">sticker list documentation</a>.',
+	},
+	{
+		displayName: 'Package ID',
+		name: 'packageId',
+		type: 'string',
+		default: '',
+		displayOptions: {
+			show: {
+				operation: ['sticker'],
+			},
+		},
+	},
+	{
+		displayName: 'Sticker ID',
+		name: 'stickerId',
+		type: 'string',
+		default: '',
+		displayOptions: {
+			show: {
+				operation: ['sticker'],
+			},
+		},
+	},
+	{
+		displayName: 'Alt Text',
+		name: 'altText',
+		type: 'string',
+		default: '',
+		description: 'Alternative text for the Flex Message (Max: 400 characters)',
+		displayOptions: {
+			show: {
+				operation: ['flex'],
+			},
+		},
+	},
+	{
+		displayName: 'Contents (JSON)',
+		name: 'contents',
+		type: 'json',
+		default: '{\n  "type": "bubble",\n  "body": {\n    "type": "box",\n    "layout": "vertical",\n    "contents": [\n      {\n        "type": "text",\n        "text": "hello, world"\n      }\n    ]\n  }\n}',
+		description: 'The Flex Message container object. See the <a href="https://developers.line.biz/en/docs/messaging-api/flex-message-elements/">Flex Message documentation</a> for the object structure.',
+		displayOptions: {
+			show: {
+				operation: ['flex'],
+			},
+		},
+	},
 ];
 
 export class LineMessageBuilder implements INodeType {
@@ -179,6 +340,73 @@ export class LineMessageBuilder implements INodeType {
           type: 'text',
           text,
           ...(Object.keys(substitution).length > 0 ? { substitution } : {}),
+        };
+      }
+ else if (messageType === 'image') {
+        const originalContentUrl = this.getNodeParameter('originalContentUrl', i) as string;
+        const previewImageUrl = this.getNodeParameter('previewImageUrl', i) as string;
+        message = {
+          type: 'image',
+          originalContentUrl,
+          previewImageUrl,
+        };
+      } else if (messageType === 'video') {
+        const originalContentUrl = this.getNodeParameter('originalContentUrl', i) as string;
+        const previewImageUrl = this.getNodeParameter('previewImageUrl', i) as string;
+        const trackingId = this.getNodeParameter('trackingId', i, '') as string;
+        message = {
+          type: 'video',
+          originalContentUrl,
+          previewImageUrl,
+        };
+        if (trackingId) {
+          message.trackingId = trackingId;
+        }
+      } else if (messageType === 'audio') {
+        const originalContentUrl = this.getNodeParameter('originalContentUrl', i) as string;
+        const duration = this.getNodeParameter('duration', i) as number;
+        message = {
+          type: 'audio',
+          originalContentUrl,
+          duration,
+        };
+      } else if (messageType === 'location') {
+        const title = this.getNodeParameter('title', i) as string;
+        const address = this.getNodeParameter('address', i) as string;
+        const latitude = this.getNodeParameter('latitude', i) as number;
+        const longitude = this.getNodeParameter('longitude', i) as number;
+        message = {
+          type: 'location',
+          title,
+          address,
+          latitude,
+          longitude,
+        };
+      } else if (messageType === 'sticker') {
+        const packageId = this.getNodeParameter('packageId', i) as string;
+        const stickerId = this.getNodeParameter('stickerId', i) as string;
+        message = {
+          type: 'sticker',
+          packageId,
+          stickerId,
+        };
+      } else if (messageType === 'flex') {
+        const altText = this.getNodeParameter('altText', i) as string;
+        const contentsRaw = this.getNodeParameter('contents', i, '{}') as string;
+        let contents: IDataObject;
+
+        try {
+          contents = JSON.parse(contentsRaw);
+        } catch (error) {
+          throw new Error(
+            `Flex message contents for item ${i} is not a valid JSON. Please check your input.`,
+          );
+        }
+
+        message = {
+          type: 'flex',
+          altText,
+          contents,
         };
       }
 
