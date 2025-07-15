@@ -13,7 +13,6 @@ import {
 import {
   MiddlewareConfig,
   middleware,
-  webhook,
   HTTPFetchError,
 } from '@line/bot-sdk';
 

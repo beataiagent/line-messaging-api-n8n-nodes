@@ -1,16 +1,30 @@
 {
-  "compilerOptions": {
-    "outDir": "./dist",           // 👈 บอกให้ build ไปไว้ในโฟลเดอร์ dist
-    "rootDir": ".",               // 👈 จุดเริ่มต้นของ source files
-    "module": "CommonJS",
-    "target": "ES2019",
-    "esModuleInterop": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "declaration": false
-  },
-  "include": ["nodes", "credentials"], // 👈 ระบุว่าให้ build โฟลเดอร์ไหนบ้าง
-  "exclude": ["dist", "node_modules"]
+	"compilerOptions": {
+		"strict": true,
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"target": "es2019",
+		"lib": ["es2019", "es2020", "es2022.error"],
+		"removeComments": true,
+		"useUnknownInCatchVariables": false,
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": true,
+		"strictNullChecks": true,
+		"preserveConstEnums": true,
+		"esModuleInterop": true,
+		"resolveJsonModule": true,
+		"incremental": true,
+		"declaration": true,
+		"sourceMap": true,
+		"skipLibCheck": true,
+		"outDir": "./dist/",
+	},
+	"include": [
+		"credentials/**/*",
+		"nodes/**/*",
+		"nodes/**/*.json",
+		"package.json",
+	],
 }

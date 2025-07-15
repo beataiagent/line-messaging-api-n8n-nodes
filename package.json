@@ -1,8 +1,9 @@
 {
   "name": "n8n-nodes-line-messaging-api",
-  "version": "1.0.0",
+  "version": "1.0.10",
   "description": "Custom n8n node for LINE Messaging API Webhook",
   "main": "index.js",
+  "keywords": ["n8n", "line", "webhook"],
   "scripts": {
     "build": "tsc"
   },
@@ -16,14 +17,18 @@
     "url": "https://github.com/beataiagent/line-messaging-api-n8n-nodes/issues"
   },
   "homepage": "https://github.com/beataiagent/line-messaging-api-n8n-nodes#readme",
-  "n8n": {
-    "credentials": [
-      "dist/credentials"
-    ],
-    "nodes": [
-      "dist/nodes"
-    ]
-  },
+  "files": [
+		"dist"
+	],
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"credentials": [
+			"dist/credentials/LineWebhookAuthApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/LineWebhook/LineWebhook.node.js"
+		]
+	},
   "dependencies": {
     "@line/bot-sdk": "^10.0.0",
     "@n8n/config": "^1.1.0",
