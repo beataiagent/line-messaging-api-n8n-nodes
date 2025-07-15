@@ -1,5 +1,3 @@
-// File: nodes/LineWebhook.node.ts
-
 import {
   IDataObject,
   IWebhookFunctions,
@@ -7,55 +5,64 @@ import {
   INodeType,
   INodeTypeDescription,
   NodeConnectionType,
-  INodeExecutionData,
 } from 'n8n-workflow';
 
 import {
   MiddlewareConfig,
-  middleware,
-  HTTPFetchError,
+  middleware
 } from '@line/bot-sdk';
 
 import { defaultWebhookDescription } from './description';
 
-const eventTypes = [
-  'text', 'audio', 'sticker', 'image', 'video', 'location',
-  'postback', 'join', 'leave', 'memberJoined', 'memberLeft',
-];
-
-function outputs(): string[] {
-  return eventTypes.map(() => 'main');
+enum EventType {
+  text = 'text',
+  audio = 'audio',
+  sticker = 'sticker',
+  image = 'image',
+  video = 'video',
+  location = 'location',
+  postback = 'postback',
+  join = 'join',
+  leave = 'leave',
+  memberJoined = 'memberJoined',
+  memberLeft = 'memberLeft',
 }
 
-function indexOfOutputs(type: string): number | null {
-  const index = eventTypes.indexOf(type);
-  return index >= 0 ? index : null;
+const eventTypes = Object.values(EventType);
+
+function getSelectedEventTypes(raw: string[] | string): string[] {
+  return Array.isArray(raw)
+    ? raw.filter((e: string) => {
+        const valid = (eventTypes as string[]).includes(e);
+        if (!valid) console.warn(`[LineWebhook] Ignoring invalid event type: ${e}`);
+        return valid;
+      })
+    : [raw];
 }
 
 export class LineWebhook implements INodeType {
   description: INodeTypeDescription = {
     displayName: 'Line Webhook',
     name: 'LineWebhook',
-    icon: 'file:messaging.svg',
-    iconColor: 'green',
+    icon: 'file:msg.svg',
     group: ['trigger'],
     version: 1,
     description: 'Handle incoming events from LINE Messaging API',
     defaults: {
       name: 'LineWebhook',
     },
-    inputs: [],
     triggerPanel: {
-			header: '',
-			executionsHelp: {
-				inactive:
-					'Webhooks have two modes: test and production. <br /> <br /> <b>Use test mode while you build your workflow</b>. Click the \'listen\' button, then make a request to the test URL. The executions will show up in the editor.<br /> <br /> <b>Use production mode to run your workflow automatically</b>. <a data-key="activate">Activate</a> the workflow, then make requests to the production URL. These executions will show up in the executions list, but not in the editor.',
-				active:
-					'Webhooks have two modes: test and production. <br /> <br /> <b>Use test mode while you build your workflow</b>. Click the \'listen\' button, then make a request to the test URL. The executions will show up in the editor.<br /> <br /> <b>Use production mode to run your workflow automatically</b>. Since the workflow is activated, you can make requests to the production URL. These executions will show up in the <a data-key="executions">executions list</a>, but not in the editor.',
-			},
-			activationHint:
-				"Once you've finished building your workflow, run it without having to click this button by using the production webhook URL.",
-		},
+      header: 'Listen LINE Messaging API events',
+      executionsHelp: {
+        inactive:
+          'Click "listen" to test the webhook. Activate to run in production.',
+        active:
+          'This webhook is active and will respond to LINE Messaging API events.',
+      },
+      activationHint:
+        'Activate the workflow to run automatically when LINE events occur.',
+    },
+    inputs: [NodeConnectionType.Main],
     outputs: eventTypes.map((eventType) => ({
       displayName: eventType,
       type: NodeConnectionType.Main,
@@ -63,7 +70,7 @@ export class LineWebhook implements INodeType {
     webhooks: [defaultWebhookDescription],
     credentials: [
       {
-        name: 'lineWebhookAuthApi',
+        name: 'LineWebhookAuthApi',
         required: true,
       },
     ],
@@ -76,71 +83,91 @@ export class LineWebhook implements INodeType {
         required: true,
         description: 'Path for the webhook (e.g. "line-webhook")',
       },
+      {
+        displayName: 'Trigger On',
+        name: 'events',
+        type: 'multiOptions',
+        default: ['*'],
+        options: [
+          {
+            name: 'All',
+            value: '*',
+            description: 'Trigger on all events',
+          },
+          ...eventTypes.map((event) => ({
+            name: event.charAt(0).toUpperCase() + event.slice(1),
+            value: event,
+            description: `Trigger on ${event} events`,
+          })),
+        ],
+        description: 'Select LINE event types to trigger this workflow',
+      },
     ],
   };
-
   async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
     const req = this.getRequestObject();
     const res = this.getResponseObject();
 
-    const outputData: IDataObject[][] = Array(outputs().length).fill(0).map(() => []);
+    const rawEvents = this.getNodeParameter('events', 0) as string[] | string;
+    const selectedEvents = getSelectedEventTypes(rawEvents);
+
+    const outputData: IDataObject[][] = eventTypes.map(() => []);
 
     try {
-      const creds = await this.getCredentials('lineWebhookAuthApi') as {
+      const creds = await this.getCredentials('LineWebhookAuthApi') as {
         channel_secret: string;
         channel_access_token: string;
       };
-
-      if (!creds?.channel_secret) {
-        throw new Error('Missing LINE channel secret');
-      }
 
       const middlewareConfig: MiddlewareConfig = {
         channelSecret: creds.channel_secret,
         channelAccessToken: creds.channel_access_token,
       };
 
-      // Validate LINE signature
+      // LINE signature validation
       await new Promise<void>((resolve, reject) => {
         middleware(middlewareConfig)(req, res, (err: any) => {
-        console.log('Received Header:', req.headers);
-        console.log('Received Body:', req.body);
           if (err) reject(err);
           else resolve();
         });
       });
 
-
       const events = req.body.events || [];
-      console.log('Received events:', events);
 
       for (const event of events) {
-        try {
-          const idx = indexOfOutputs(event.type);
-          if (idx !== null) {
-            outputData[idx].push({
-              eventType: event.type,
-              ...event,
-            });
-          }
-        } catch (err: unknown) {
-          if (err instanceof HTTPFetchError) {
-            console.error('LINE API Error:', err.status);
-            console.error(err.headers?.get('x-line-request-id'));
-            console.error(err.body);
-          } else if (err instanceof Error) {
-            console.error('Error processing event:', err.message);
-          }
+        let actualType: string;
+
+        if (event.type === 'message') {
+          actualType = event.message?.type ?? '';
+        } else {
+          actualType = event.type;
+        }
+
+        const outputIndex = eventTypes.findIndex((t) => t === actualType);
+
+        if (outputIndex === -1) {
+          console.warn(`[LineWebhook] Unmapped event type: ${actualType}`);
+          continue;
+        }
+
+        if (selectedEvents.includes('*') || selectedEvents.includes(actualType)) {
+          outputData[outputIndex].push({
+            eventType: actualType,
+            replyToken: event.replyToken,
+            timestamp: event.timestamp,
+            source: event.source,
+            message: event.message ?? undefined,
+            postback: event.postback ?? undefined,
+            rawEvent: event,
+          });
         }
       }
 
-      const result: INodeExecutionData[][] = outputData.map((items) =>
-        this.helpers.returnJsonArray(items)
-      );
-
-      return { workflowData: result };
+      return {
+        workflowData: outputData.map((items) => this.helpers.returnJsonArray(items)),
+      };
     } catch (error: any) {
-      console.error('Webhook setup or processing error:', error);
+      console.error('Webhook processing failed:', error);
       throw error;
     }
   }

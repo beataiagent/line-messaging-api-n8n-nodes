@@ -13,4 +13,7 @@ export const defaultWebhookDescription: IWebhookDescription = {
 	path: '={{$parameter["path"]}}',
 	ndvHideUrl: false,
     ndvHideMethod: false,
+	isTestable: true,
+	isManual: true,
+	docsUrl:"https://developers.line.biz/en/docs/messaging-api/receiving-messages/#webhook-event-in-one-on-one-talk-or-group-chat"
 };

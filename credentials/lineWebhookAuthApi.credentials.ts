@@ -3,8 +3,8 @@ import {
   INodeProperties,
 } from 'n8n-workflow';
 
-export class lineWebhookAuthApi implements ICredentialType {
-  name = 'lineWebhookAuthApi';
+export class LineWebhookAuthApi implements ICredentialType {
+  name = 'LineWebhookAuthApi';
   displayName = 'LINE Webhook Auth API';
   documentationUrl = '';
   properties: INodeProperties[] = [
@@ -22,4 +22,4 @@ export class lineWebhookAuthApi implements ICredentialType {
     },
   ];
 }
-module.exports = { lineWebhookAuthApi };
+module.exports = { LineWebhookAuthApi };
