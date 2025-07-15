@@ -1,23 +1,25 @@
+// File: credentials/LineApi.credentials.ts
 import {
-	ICredentialType,
-	NodePropertyTypes,
+  ICredentialType,
+  INodeProperties,
 } from 'n8n-workflow';
 
-export class LineApi implements ICredentialType {
-	name = 'lineApi';
-	displayName = 'LINE Messaging API';
-	properties = [
-		{
-			displayName: 'Channel Access Token',
-			name: 'channelAccessToken',
-			type: 'string' as NodePropertyTypes,
-			default: '',
-		},
-		{
-			displayName: 'Channel Secret',
-			name: 'channelSecret',
-			type: 'string' as NodePropertyTypes,
-			default: '',
-		},
-	];
+export default class LineApi implements ICredentialType {
+  name = 'lineWebhookAuthApi';
+  displayName = 'LINE Webhook Auth API';
+  documentationUrl = '';
+  properties: INodeProperties[] = [
+    {
+      displayName: 'Channel Secret',
+      name: 'channel_secret',
+      type: 'string',
+      default: '',
+    },
+    {
+      displayName: 'Channel Access Token',
+      name: 'channel_access_token',
+      type: 'string',
+      default: '',
+    },
+  ];
 }
