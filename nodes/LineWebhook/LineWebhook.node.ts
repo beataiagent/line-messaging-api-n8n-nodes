@@ -9,7 +9,7 @@ import {
 
 import {
   MiddlewareConfig,
-  middleware
+  middleware,
 } from '@line/bot-sdk';
 
 import { defaultWebhookDescription } from './description';
@@ -26,11 +26,22 @@ enum EventType {
   leave = 'leave',
   memberJoined = 'memberJoined',
   memberLeft = 'memberLeft',
+  follow = 'follow',
+  unfollow = 'unfollow',
+  videoPlayComplete = 'videoPlayComplete',
+  beacon = 'beacon',
+  accountLink = 'accountLink',
 }
 
 const eventTypes = Object.values(EventType);
 
 function getSelectedEventTypes(raw: string[] | string): string[] {
+  const rawList = Array.isArray(raw) ? raw : [raw];
+
+  if (rawList.includes('*')) {
+    return ['*'];
+  }
+
   return Array.isArray(raw)
     ? raw.filter((e: string) => {
         const valid = (eventTypes as string[]).includes(e);
@@ -88,6 +99,7 @@ export class LineWebhook implements INodeType {
         name: 'events',
         type: 'multiOptions',
         default: ['*'],
+        required: true,
         options: [
           {
             name: 'All',
@@ -104,6 +116,7 @@ export class LineWebhook implements INodeType {
       },
     ],
   };
+
   async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
     const req = this.getRequestObject();
     const res = this.getResponseObject();
@@ -124,7 +137,6 @@ export class LineWebhook implements INodeType {
         channelAccessToken: creds.channel_access_token,
       };
 
-      // LINE signature validation
       await new Promise<void>((resolve, reject) => {
         middleware(middlewareConfig)(req, res, (err: any) => {
           if (err) reject(err);
@@ -133,6 +145,8 @@ export class LineWebhook implements INodeType {
       });
 
       const events = req.body.events || [];
+      console.log('Received events:', events);
+
 
       for (const event of events) {
         let actualType: string;
@@ -147,6 +161,7 @@ export class LineWebhook implements INodeType {
 
         if (outputIndex === -1) {
           console.warn(`[LineWebhook] Unmapped event type: ${actualType}`);
+          console.warn('Raw event:', JSON.stringify(event, null, 2));
           continue;
         }
 
@@ -162,9 +177,11 @@ export class LineWebhook implements INodeType {
           });
         }
       }
-
+      console.log('outputData:', outputData);
       return {
-        workflowData: outputData.map((items) => this.helpers.returnJsonArray(items)),
+        workflowData: outputData.map((items) =>
+          this.helpers.returnJsonArray(items),
+        ),
       };
     } catch (error: any) {
       console.error('Webhook processing failed:', error);
