@@ -1,49 +1,27 @@
 // File: nodes/LineWebhook.node.ts
+
 import {
   IDataObject,
   IWebhookFunctions,
   IWebhookResponseData,
   INodeType,
   INodeTypeDescription,
-  ICredentialDataDecryptedObject,
-  NodeApiError,
   NodeConnectionType,
   INodeExecutionData,
 } from 'n8n-workflow';
 
-import { defaultWebhookDescription } from './description';
-import crypto from 'crypto';
-
 import {
-  ClientConfig,
-  messagingApi,
+  MiddlewareConfig,
+  middleware,
   webhook,
   HTTPFetchError,
 } from '@line/bot-sdk';
 
-function s2b(str: string, encoding: BufferEncoding): Buffer {
-  return Buffer.from(str, encoding);
-}
-
-function safeCompare(a: Buffer, b: Buffer): boolean {
-  if (a.length !== b.length) return false;
-  return crypto.timingSafeEqual(a, b);
-}
-
-function validateSignature(
-  body: string | Buffer,
-  channelSecret: string,
-  signature: string,
-): boolean {
-  return safeCompare(
-    crypto.createHmac("SHA256", channelSecret).update(body.toString('utf8')).digest(),
-    s2b(signature, "base64"),
-  );
-}
+import { defaultWebhookDescription } from './description';
 
 const eventTypes = [
   'text', 'audio', 'sticker', 'image', 'video', 'location',
-  'postback', 'join', 'leave', 'memberJoined', 'memberLeft'
+  'postback', 'join', 'leave', 'memberJoined', 'memberLeft',
 ];
 
 function outputs(): string[] {
@@ -59,7 +37,8 @@ export class LineWebhook implements INodeType {
   description: INodeTypeDescription = {
     displayName: 'Line Webhook',
     name: 'LineWebhook',
-    icon: 'file:line.svg',
+    icon: 'file:msg.svg',
+    iconColor: 'green',
     group: ['trigger'],
     version: 1,
     description: 'Handle incoming events from LINE Messaging API',
@@ -67,9 +46,9 @@ export class LineWebhook implements INodeType {
       name: 'LineWebhook',
     },
     inputs: [],
-    outputs: eventTypes.map(eventType => ({
+    outputs: eventTypes.map((eventType) => ({
       displayName: eventType,
-      type: NodeConnectionType.Main
+      type: NodeConnectionType.Main,
     })),
     webhooks: [defaultWebhookDescription],
     credentials: [
@@ -91,66 +70,66 @@ export class LineWebhook implements INodeType {
   };
 
   async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
-    const headerName = 'x-line-signature';
-    const headers = this.getHeaderData();
     const req = this.getRequestObject();
-    const body = req.rawBody;
-
-    let creds: {
-      channel_secret: string;
-      channel_access_token: string;
-    };
+    const res = this.getResponseObject();
+    const outputData: IDataObject[][] = Array(outputs().length).fill(0).map(() => []);
 
     try {
-      creds = await this.getCredentials('lineWebhookAuthApi') as {
+      const creds = await this.getCredentials('lineWebhookAuthApi') as {
         channel_secret: string;
-        channel_access_token: string;
       };
-      if (!creds?.channel_secret || !creds?.channel_access_token) {
-        throw new Error('Missing LINE credentials');
+
+      if (!creds?.channel_secret) {
+        throw new Error('Missing LINE channel secret');
       }
 
-      const signature = (headers as IDataObject)[headerName] as string;
-      if (!signature || !validateSignature(body, creds.channel_secret, signature)) {
-        throw new Error('Invalid Signature');
+      const middlewareConfig: MiddlewareConfig = {
+        channelSecret: creds.channel_secret,
+      };
+
+      // Validate LINE signature
+      await new Promise<void>((resolve, reject) => {
+        middleware(middlewareConfig)(req, res, (err: any) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      const callbackRequest: webhook.CallbackRequest = req.body;
+      const events: webhook.Event[] = callbackRequest.events || [];
+
+      for (const event of events) {
+        try {
+          const idx = indexOfOutputs(event.type);
+          if (idx !== null) {
+            outputData[idx].push({
+              eventType: event.type,
+              ...event,
+            });
+          }
+        } catch (err: unknown) {
+          if (err instanceof HTTPFetchError) {
+            console.error('LINE API Error:', err.status);
+            console.error(err.headers?.get('x-line-request-id'));
+            console.error(err.body);
+          } else if (err instanceof Error) {
+            console.error('Error processing event:', err.message);
+          }
+        }
       }
+
+      res.writeHead(200).end();
+
+      const result: INodeExecutionData[][] = outputData.map((items) =>
+        this.helpers.returnJsonArray(items)
+      );
+
+      return { workflowData: result };
     } catch (error: any) {
-      const res = this.getResponseObject();
-      res.writeHead(403, { 'Content-Type': 'text/plain' });
-      res.end(error.message || 'Forbidden');
+      console.error('Webhook setup or processing error:', error);
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      res.end('Webhook Error: ' + (error.message || 'Unknown error'));
       return { noWebhookResponse: true };
     }
-
-    const outputData: IDataObject[][] = Array(outputs().length).fill(0).map(() => []);
-    const bodyObj = this.getBodyData();
-    const events = bodyObj.events as webhook.Event[];
-    const destination = bodyObj.destination;
-
-    const client = new messagingApi.MessagingApiClient({
-      channelAccessToken: creds.channel_access_token,
-    });
-
-    for (const event of events) {
-      const eventType = event.type;
-      let typeKey = eventType;
-
-      const idx = indexOfOutputs(typeKey);
-      if (idx !== null) {
-        const outputItem: IDataObject = {
-          payload: {
-            destination,
-            ...event,
-          },
-        };
-        outputData[idx].push(outputItem);
-      }
-    }
-
-    const res = this.getResponseObject();
-    res.writeHead(200);
-    res.end('OK');
-
-    const result: INodeExecutionData[][] = outputData.map(items => this.helpers.returnJsonArray(items));
-    return { workflowData: result };
   }
 }

@@ -1,10 +1,9 @@
-// File: credentials/LineApi.credentials.ts
 import {
   ICredentialType,
   INodeProperties,
 } from 'n8n-workflow';
 
-export default class LineApi implements ICredentialType {
+export class lineWebhookAuthApi implements ICredentialType {
   name = 'lineWebhookAuthApi';
   displayName = 'LINE Webhook Auth API';
   documentationUrl = '';
@@ -23,3 +22,4 @@ export default class LineApi implements ICredentialType {
     },
   ];
 }
+module.exports = { lineWebhookAuthApi };
