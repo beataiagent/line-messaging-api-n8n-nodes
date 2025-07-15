@@ -114,12 +114,12 @@ export const messageTypes: INodeProperties[] = [
 
 export class LineMessageBuilder implements INodeType {
   description: INodeTypeDescription = {
-    displayName: 'Line Message',
+    displayName: 'Line Message Builder',
     name: 'LineMessageBuilder',
-    icon: 'file:line.svg',
+    icon: 'file:msg.svg',
     group: ['transform'],
     version: 1,
-    description: 'Line Message Node',
+    description: 'Builds a message object for the LINE Messaging API.',
     defaults: {
       name: 'LineMessageBuilder',
     },
