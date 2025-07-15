@@ -7,26 +7,24 @@ import {
 	ICredentialDataDecryptedObject,
 	NodeApiError,
 	INodeExecutionData,
+	INodeOutputConfiguration,
+	NodeConnectionType,
 } from 'n8n-workflow';
 
-import {
-	defaultWebhookDescription,
-} from './description';
-
+import { defaultWebhookDescription } from './description';
 import crypto from 'crypto';
 
-// Convert string to buffer
+// === Security helpers ===
+
 function s2b(str: string, encoding: BufferEncoding): Buffer {
 	return Buffer.from(str, encoding);
 }
 
-// Timing-safe signature comparison
 function safeCompare(a: Buffer, b: Buffer): boolean {
 	if (a.length !== b.length) return false;
 	return crypto.timingSafeEqual(a, b);
 }
 
-// Validate LINE Signature
 function validateSignature(
 	body: string | Buffer,
 	channelSecret: string,
@@ -38,17 +36,7 @@ function validateSignature(
 	);
 }
 
-// Define outputs for each event/message type
-function outputs(): string[] {
-	const types = ['text', 'audio', 'sticker', 'image', 'video', 'location', 'postback', 'join', 'leave', 'memberJoined', 'memberLeft'];
-	return types.map(() => 'main');
-}
-
-function outputLabels(): { [key: string]: string } {
-	return {
-		'main': 'LINE Event Output'
-	};
-}
+// === Event type mapping ===
 
 const eventTypes = [
 	'text', 'audio', 'sticker', 'image', 'video', 'location',
@@ -72,20 +60,11 @@ export class LineWebhook implements INodeType {
 			name: 'LineWebhook',
 		},
 		inputs: [],
-		outputs: eventTypes.length,
-		outputNames: {
-			0: 'text',
-			1: 'audio',
-			2: 'sticker',
-			3: 'image',
-			4: 'video',
-			5: 'location',
-			6: 'postback',
-			7: 'join',
-			8: 'leave',
-			9: 'memberJoined',
-			10: 'memberLeft',
-		},
+		outputs: eventTypes.map<INodeOutputConfiguration>((eventType) => ({
+			displayName: eventType,
+			type: NodeConnectionType.Main,
+			name: eventType,
+		})),
 		webhooks: [defaultWebhookDescription],
 		credentials: [
 			{
@@ -109,16 +88,21 @@ export class LineWebhook implements INodeType {
 		const headerName = 'x-line-signature';
 		const headers = this.getHeaderData();
 		const req = this.getRequestObject();
-		const body = req.rawBody;
+		const rawBody = req.rawBody;
 
-		// Signature Validation
+		// Validate signature
 		try {
-			const creds = await this.getCredentials('lineWebhookAuthApi') as { channel_secret: string };
-			if (!creds?.channel_secret) throw new Error('Missing LINE Channel Secret');
+			const creds = await this.getCredentials('lineWebhookAuthApi') as {
+				channel_secret: string;
+			};
+
+			if (!creds?.channel_secret) {
+				throw new Error('Missing LINE Channel Secret');
+			}
 
 			const signature = (headers as IDataObject)[headerName] as string;
-			if (!signature || !validateSignature(body, creds.channel_secret, signature)) {
-				throw new Error('Invalid Signature');
+			if (!signature || !validateSignature(rawBody, creds.channel_secret, signature)) {
+				throw new Error('Invalid signature');
 			}
 		} catch (error: any) {
 			const res = this.getResponseObject();
@@ -128,34 +112,30 @@ export class LineWebhook implements INodeType {
 		}
 
 		// Prepare output buckets
-		const outputData: IDataObject[][] = Array(outputs().length).fill(0).map(() => []);
-
+		const outputData: IDataObject[][] = Array(eventTypes.length).fill(null).map(() => []);
 		const bodyObj = this.getBodyData();
-		const events = bodyObj.events as IDataObject[];
+		const events = bodyObj.events as IDataObject[] || [];
 		const destination = bodyObj.destination;
-		
-		for (const event of events) {
-			const eventType = event.type as string;
-			let typeKey = eventType;
 
-			if (eventType === 'message') {
+		for (const event of events) {
+			let typeKey = event.type as string;
+			if (typeKey === 'message') {
 				typeKey = (event.message as IDataObject)?.type as string;
 			}
 
 			const idx = indexOfOutputs(typeKey);
 			if (idx !== null) {
-				const outputItem: IDataObject = {
+				outputData[idx].push({
 					payload: {
 						destination,
 						...event,
 					},
-				};
-				outputData[idx].push(outputItem);
+				});
 			}
 		}
 
-		// Send 200 OK
-		const res = this.getResponseObject()
+		// Respond to LINE with 200 OK
+		const res = this.getResponseObject();
 		res.writeHead(200);
 		res.end('OK');
 
