@@ -235,7 +235,8 @@ export class LineMessaging implements INodeType {
 			if (operation === 'replyMessage') {
 				const replyToken = this.getNodeParameter('replyToken', i) as string;
 				const message = this.getNodeParameter('message', i);
-				const messages = Array.isArray(message) ? message : [message];
+				const messages = Array.isArray(message) ? message : [message] as any;
+				await client.validateReply(messages);
 				await client.replyMessage({
 						replyToken,
 						messages: messages,
