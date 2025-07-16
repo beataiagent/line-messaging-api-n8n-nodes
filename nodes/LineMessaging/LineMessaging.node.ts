@@ -69,8 +69,8 @@ export const messagingAPIOperations: INodeProperties[] = [
 			{
 				name: 'Show Loading Animation',
 				value: 'showLoadingAnimation',
-				action: 'Trigger show loading animation',
-				description: 'Trigger a loading animation call (custom endpoint)',
+				action: 'Show loading animation',
+				description: 'Trigger a loading animation',
 			},
 		],
 		default: 'replyMessage',
@@ -93,10 +93,7 @@ export const messagingAPIOperations: INodeProperties[] = [
 		displayName: 'Message',
 		name: 'message',
 		type: 'json',
-		default: {
-			type: 'text',
-			text: 'Hello, world',
-		},
+		default: '{ "type": "text", "text": "Hello, world!" }',
 		required: true,
 		typeOptions: {
 			alwaysOpenEditWindow: true,
@@ -232,58 +229,95 @@ export class LineMessaging implements INodeType {
 			const operation = this.getNodeParameter('operation', i) as string;
 			
 
-			if (operation === 'replyMessage') {
+		 	if (operation === 'replyMessage') {
 				const replyToken = this.getNodeParameter('replyToken', i) as string;
-				const message = this.getNodeParameter('message', i);
-				const messages = Array.isArray(message) ? message : [message];
+				let messageParam = this.getNodeParameter('message', i, {}) as any;
 
-				for (const [index, m] of messages.entries()) {
-					if (!m.type) {
-						throw new NodeApiError(this.getNode(), {}, {
-							message: `Message at index ${index} missing "type"`
-						});
+				if (!replyToken || typeof replyToken !== 'string' || replyToken.trim() === '') {
+					throw new NodeApiError(this.getNode(), {}, { message: 'Missing or invalid replyToken' });
+				}
+
+				let messages: messagingApi.Message[];
+
+				if (typeof messageParam === 'string') {
+					try {
+					messageParam = JSON.parse(messageParam);
+					} catch (error) {
+					throw new NodeApiError(this.getNode(), {}, { message: 'Invalid JSON in message parameter' });
 					}
 				}
-				console.log('Replying with:', JSON.stringify({ replyToken, messages }, null, 2));
+
+				if (Array.isArray(messageParam)) {
+					messages = messageParam;
+				} else if (typeof messageParam === 'object' && messageParam !== null) {
+					messages = [messageParam];
+				} else {
+					throw new NodeApiError(this.getNode(), {}, { message: 'Invalid message format' });
+				}
+
 				await client.replyMessage({ replyToken, messages });
 
 				returnData.push({
 					json: {
-						success: true,
-						message: 'Message replied successfully',
+					success: true,
+					message: 'Reply message sent successfully',
 					},
 				});
 			} else if (operation === 'pushMessage') {
-				const message = this.getNodeParameter('message', i);
-				const messages = Array.isArray(message) ? message : [message];
 				const to = this.getNodeParameter('targetRecipient', i) as string;
+				let messageParam = this.getNodeParameter('message', i, {}) as any;
 
-				if (!to) {
-					throw new NodeApiError(this.getNode(), {}, { message: 'Missing target recipient for push message' });
+				if (!to || typeof to !== 'string' || to.trim() === '') {
+					throw new NodeApiError(this.getNode(), {}, { message: 'Missing or invalid targetRecipient' });
 				}
 
-				messages.forEach((m, index) => {
-					if (!m.type) {
-						throw new NodeApiError(this.getNode(), {}, { message: `Message at index ${index} is missing "type"` });
-					}
-				});
+				let messages: messagingApi.Message[];
 
-				console.log('Pushing message to:', to);
-				console.log('Payload:', JSON.stringify({ to, messages }, null, 2));
+				if (typeof messageParam === 'string') {
+					try {
+					messageParam = JSON.parse(messageParam);
+					} catch (error) {
+					throw new NodeApiError(this.getNode(), {}, { message: 'Invalid JSON in message parameter' });
+					}
+				}
+
+				if (Array.isArray(messageParam)) {
+					messages = messageParam;
+				} else if (typeof messageParam === 'object' && messageParam !== null) {
+					messages = [messageParam];
+				} else {
+					throw new NodeApiError(this.getNode(), {}, { message: 'Invalid message format' });
+				}
 
 				await client.pushMessage({ to, messages });
 
 				returnData.push({
 					json: {
-						success: true,
-						message: 'Message pushed successfully',
+					success: true,
+					message: 'Reply message sent successfully',
 					},
 				});
 
 			} else if (operation === 'multicast') {
 				const to = this.getNodeParameter('targetRecipients', i) as string[];
-				const message = this.getNodeParameter('message', i);
-				const messages = Array.isArray(message) ? message : [message];
+				let messageParam = this.getNodeParameter('message', i, {}) as any;
+				let messages: messagingApi.Message[];
+
+				if (typeof messageParam === 'string') {
+					try {
+					messageParam = JSON.parse(messageParam);
+					} catch (error) {
+					throw new NodeApiError(this.getNode(), {}, { message: 'Invalid JSON in message parameter' });
+					}
+				}
+
+				if (Array.isArray(messageParam)) {
+					messages = messageParam;
+				} else if (typeof messageParam === 'object' && messageParam !== null) {
+					messages = [messageParam];
+				} else {
+					throw new NodeApiError(this.getNode(), {}, { message: 'Invalid message format' });
+				}
 				await client.multicast({ to, messages });
 
 			} else if (operation === 'getProfile') {
@@ -311,13 +345,12 @@ export class LineMessaging implements INodeType {
 				const messageId = this.getNodeParameter('messageId', i) as string;
 				const { httpResponse, body } = await blobClient.getMessageContentWithHttpInfo(messageId);
 				const contentType = httpResponse.headers.get('content-type') as string;
-
-				returnData.push({
-					json: {},
+				returnData.push({json: {},
 					binary: {
-						data: await this.helpers.prepareBinaryData(body, 'data', contentType),
-					},
-				});
+						data: await this.helpers.prepareBinaryData(
+							body, 'data', contentType
+						),
+					}});
 
 			} else if (operation === 'showLoadingAnimation') {
 				const userId = this.getNodeParameter('userId', i) as string;

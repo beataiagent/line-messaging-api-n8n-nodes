@@ -55,16 +55,16 @@ export class LineBotMCPClient implements INodeType {
   async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
     const returnData: INodeExecutionData[] = [];
     const toolName = this.getNodeParameter('toolName', 0) as string;
-    const rawParams = this.getNodeParameter('toolParameters', 0);
+    // const rawParams = this.getNodeParameter('toolParameters', 0);
     let toolParams: Record<string, any> = {};
 
     try {
-      const rawParams = this.getNodeParameter('toolParameters', 0) ?? {};
-      const toolParams = typeof rawParams === 'string'
-        ? JSON.parse(rawParams)
-        : typeof rawParams === 'object'
-          ? rawParams
-          : {};
+      // const rawParams = this.getNodeParameter('toolParameters', 0) ?? {};
+      // // const toolParams = typeof rawParams === 'string'
+      //   ? JSON.parse(rawParams)
+      //   : typeof rawParams === 'object'
+      //     ? rawParams
+      //     : {};
     } catch (err) {
       throw new NodeOperationError(this.getNode(), 'Invalid JSON for tool parameters');
     }
