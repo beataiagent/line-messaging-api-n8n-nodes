@@ -1,4 +1,5 @@
 import type { IWebhookDescription } from 'n8n-workflow';
+import tr from 'zod/v4/locales/tr.cjs';
 
 export const defaultWebhookDescription: IWebhookDescription = {
 	name: 'default',
@@ -11,8 +12,8 @@ export const defaultWebhookDescription: IWebhookDescription = {
 	responsePropertyName: '={{$parameter["options"]["responsePropertyName"]}}',
 	responseHeaders: '={{$parameter["options"]["responseHeaders"]}}',
 	path: '={{$parameter["path"]}}',
-	ndvHideUrl: false,
-    ndvHideMethod: false,
+	ndvHideUrl: true,
+    ndvHideMethod: true,
 	isTestable: true,
 	isManual: true,
 	docsUrl:"https://developers.line.biz/en/docs/messaging-api/receiving-messages/#webhook-event-in-one-on-one-talk-or-group-chat"

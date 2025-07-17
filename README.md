@@ -2,7 +2,7 @@
 
 This is a community node for [n8n](https://n8n.io/) that allows you to interact with the **LINE Messaging API**. It lets you create a LINE chatbot with n8n, often without any coding required.
 
-![LINE Messaging API](https://img.shields.io/badge/LINE-Messaging%20API-brightgreen)
+![LINE Messaging API](https://img.shields.io/badge/LINE-Messaging%20API-brightgreen)![n8n](https://img.shields.io/badge/n8n-Custom%20Node-orange)
 
 ---
 
@@ -26,9 +26,13 @@ This is a community node for [n8n](https://n8n.io/) that allows you to interact 
 
 1.  Go to **Settings > Community Nodes**.
 2.  Select **Install**.
-3.  Enter `n8n-nodes-linewebhook` in the **Enter npm package name** field.
+3.  Enter `n8n-nodes-line-messaging-api` in the **Enter npm package name** field.
+<pre> n8n-nodes-line-messaging-api</pre>
 4.  Agree to the risks of using community nodes by selecting **I understand the risks of installing unverified code from a public source**.
-5.  Select **Install**.
+5.  Select **Install**
+
+<img src="./documentation/images/installation-1.png" alt="Setup Package" width="500px;" />
+<img src="./documentation/images/installation-2.png" alt="Setup Package" width="500px;" />
 
 After installing, the node will appear in the Nodes panel and can be used like any other node.
 
@@ -44,9 +48,6 @@ npm install n8n-nodes-linewebhook
 
 For Docker-based deployments, add the following line to your n8n Dockerfile before the font installation command:
 
-```dockerfile
-RUN cd /usr/local/lib/node_modules/n8n && npm install n8n-nodes-linewebhook
-```
 
 ## Nodes and Operations
 
