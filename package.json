@@ -34,7 +34,7 @@
     "nodes": [
       "dist/nodes/LineWebhook/LineWebhook.node.js",
       "dist/nodes/LineMessageBuilder/LineMessageBuilder.node.js",
-      "dist/nodes/LineMessagingApi/LineMessagingApi.node.js"
+      "dist/nodes/LineMessagingAPI/LineMessagingAPI.node.js"
     ]
   },
   "dependencies": {
