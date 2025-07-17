@@ -22,9 +22,9 @@ echo -e "${green}📦 Build complete. Verifying dist...${reset}"
 find dist -name "*.node.js"
 
 
-read -p $'\n🔐 Do you want to publish this version to npm? (yes/no): ' confirm
+read -p $'\n🔐 Do you want to publish this version to npm? (y/n): ' confirm
 
-if [[ "$confirm" == "yes" ]]; then
+if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
   echo -e "${green}📤 Publishing to npm...${reset}"
   npm publish --access public
 

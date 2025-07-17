@@ -185,7 +185,7 @@ export const messagingAPIOperations: INodeProperties[] = [
     },
 ];
 
-export class LineMessagingApi implements INodeType {
+export class LineMessagingAPI implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'LINE Messaging API',
 		name: 'LineMessagingAPI',
