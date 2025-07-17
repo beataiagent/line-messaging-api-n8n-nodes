@@ -1,28 +1,35 @@
 #!/bin/bash
-
 set -e
 
-# สีสวย ๆ
 green="\033[0;32m"
 red="\033[0;31m"
 reset="\033[0m"
 
-echo -e "${green}🚀 Starting build + version bump + publish...${reset}"
+echo -e "$Starting build + version bump + publish...${reset}"
 
+if [[ -n $(git status --porcelain) ]]; then
+  echo -e "${red}❌ Git working directory not clean. Please commit or stash your changes first.${reset}"
+  git status --short
+  exit 1
+fi
 
-npm version patch
+npm version patch --force
 
 
 npm run build
 
-# ตรวจสอบว่ามี dist ครบ
-echo -e "${green} Verifying build output...${reset}"
+echo -e "${green}📦 Build complete. Verifying dist...${reset}"
 find dist -name "*.node.js"
 
-# แพ็กและ publish
-echo -e "${green} Publishing to npm...${reset}"
-npm publish --access public
 
-# แสดงเวอร์ชันล่าสุด
-VERSION=$(node -p "require('./package.json').version")
-echo -e "${green}✅ Published version $VERSION to npm!${reset}"
+read -p $'\n🔐 Do you want to publish this version to npm? (yes/no): ' confirm
+
+if [[ "$confirm" == "yes" ]]; then
+  echo -e "${green}📤 Publishing to npm...${reset}"
+  npm publish --access public
+
+  VERSION=$(node -p "require('./package.json').version")
+  echo -e "${green}✅ Published version $VERSION to npm!${reset}"
+else
+  echo -e "${red}🚫 Publish canceled.${reset}"
+fi
