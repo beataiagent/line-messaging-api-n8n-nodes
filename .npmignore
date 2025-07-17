@@ -2,3 +2,7 @@ deployment
 .vscode
 .git
 .gitignore
+documentation
+package-lock.json
+package.json
+README.md
