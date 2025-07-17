@@ -1,4 +1,5 @@
 import type { IWebhookDescription } from 'n8n-workflow';
+import fa from 'zod/v4/locales/fa.cjs';
 
 export const defaultWebhookDescription: IWebhookDescription = {
 	name: 'default',
@@ -11,7 +12,7 @@ export const defaultWebhookDescription: IWebhookDescription = {
 	responsePropertyName: '={{$parameter["options"]["responsePropertyName"]}}',
 	responseHeaders: '={{$parameter["options"]["responseHeaders"]}}',
 	path: '={{$parameter["path"]}}',
-	ndvHideUrl: true,
+	ndvHideUrl: false,
     ndvHideMethod: true,
 	isTestable: true,
 	isManual: true,
