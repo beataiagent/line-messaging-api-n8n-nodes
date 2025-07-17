@@ -57,7 +57,8 @@ export class LineWebhook implements INodeType {
     name: 'LineWebhook',
     icon: 'file:msg.svg',
     group: ['trigger'],
-    version: 1,
+    version: [1, 1.1, 2, 2.1],
+		defaultVersion: 2,
     description: 'Handle incoming events from LINE Messaging API',
     defaults: {
       name: 'LineWebhook',
