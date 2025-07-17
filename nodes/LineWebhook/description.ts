@@ -1,5 +1,4 @@
 import type { IWebhookDescription } from 'n8n-workflow';
-import fa from 'zod/v4/locales/fa.cjs';
 
 export const defaultWebhookDescription: IWebhookDescription = {
 	name: 'default',
