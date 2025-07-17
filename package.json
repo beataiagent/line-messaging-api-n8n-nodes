@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-line-messaging-api",
-  "version": "1.0.56",
+  "version": "1.0.57",
   "description": "Custom n8n node for LINE Messaging API Webhook",
   "main": "index.js",
   "keywords": [
