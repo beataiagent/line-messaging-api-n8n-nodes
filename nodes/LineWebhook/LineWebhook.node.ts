@@ -81,7 +81,7 @@ export class LineWebhook implements INodeType {
     webhooks: [defaultWebhookDescription],
     credentials: [
       {
-        name: 'LineWebhookAuthApi',
+        name: 'LineMessagingAPIAuth',
         required: true,
       },
     ],
@@ -127,7 +127,7 @@ export class LineWebhook implements INodeType {
     const outputData: IDataObject[][] = eventTypes.map(() => []);
 
     try {
-      const creds = await this.getCredentials('LineWebhookAuthApi') as {
+      const creds = await this.getCredentials('LineMessagingAPIAuth') as {
         channel_secret: string;
         channel_access_token: string;
       };
