@@ -1,6 +1,6 @@
 {
-  "name": "n8n-nodes-line-messaging-api-kit",
-  "version": "1.0.32",
+  "name": "n8n-nodes-line-messaging-api",
+  "version": "1.0.48",
   "description": "Custom n8n node for LINE Messaging API Webhook",
   "main": "index.js",
   "keywords": [
@@ -9,7 +9,9 @@
     "webhook"
   ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc && npm run copy-icons && npm run copy-icons-cred",
+    "copy-icons": "copyfiles -u 1 'nodes/**/*.svg' dist/nodes",
+    "copy-icons-cred": "copyfiles -u 1 'credentials/*.svg' dist/credentials"
   },
   "repository": {
     "type": "git",
@@ -27,7 +29,7 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/LineWebhookAuthApi.credentials.js"
+      "dist/credentials/LineMessagingAPIAuth.credentials.js"
     ],
     "nodes": [
       "dist/nodes/LineWebhook/LineWebhook.node.js",

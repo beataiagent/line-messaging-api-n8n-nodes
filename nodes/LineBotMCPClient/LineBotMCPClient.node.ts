@@ -30,7 +30,7 @@ export class LineBotMCPClient implements INodeType {
     usableAsTool: true,
     credentials: [
       {
-        name: 'lineWebhookAuthApi',
+        name: 'LineMessagingAPIAuth',
         required: true,
       },
     ],
@@ -69,7 +69,7 @@ export class LineBotMCPClient implements INodeType {
       throw new NodeOperationError(this.getNode(), 'Invalid JSON for tool parameters');
     }
 
-    const credentials = await this.getCredentials('lineWebhookAuthApi');
+    const credentials = await this.getCredentials('LineMessagingAPIAuth');
     const channelAccessToken = credentials.channelAccessToken as string;
     const destinationUserId = credentials.destinationUserId as string;
 
