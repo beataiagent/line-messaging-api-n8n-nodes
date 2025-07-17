@@ -71,7 +71,7 @@ export class LineWebhook implements INodeType {
           'This webhook is active and will respond to LINE Messaging API events.',
       },
       activationHint:
-        'Activate the workflow to run automatically when LINE events occur.',
+        'Activate the workflow to run automatically when LINE events occur. Link: https://developers.line.biz/en/docs/messaging-api/receiving-messages/',
     },
     inputs: [NodeConnectionType.Main],
     outputs: eventTypes.map((eventType) => ({
@@ -79,6 +79,7 @@ export class LineWebhook implements INodeType {
       type: NodeConnectionType.Main,
     })),
     webhooks: [defaultWebhookDescription],
+    mockManualExecution: true,
     credentials: [
       {
         name: 'LineMessagingAPIAuth',
